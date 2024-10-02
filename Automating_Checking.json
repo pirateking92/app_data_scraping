@@ -1,0 +1,57 @@
+{
+  "id": "0c4b05d9-ca17-4851-a2c3-00c82317e5d1",
+  "submissionDate": "2023-03-06T11:01:39.1164397Z",
+  "comment": "Added reflection",
+  "submitterId": "579d46bd-ac00-45d5-aa4b-af23009a9b46",
+  "submitterFirstName": "Sanam",
+  "submitterLastName": "Rehman",
+  "files": [
+    {
+      "id": "12fc9d85-7a94-4bb9-84a6-d3fc29c2e038",
+      "fileName": "Automating Checking.pdf",
+      "containerId": "9777faae-b379-4aac-88ee-777f580cd600"
+    }
+  ],
+  "markingResult": {
+    "markerId": "c3240195-4886-475c-8847-aafd00e5472f",
+    "markerFirstName": "Eddie",
+    "markerLastName": "Andress",
+    "markDate": "2023-03-15T14:20:02.116203Z",
+    "assessmentCriterias": [],
+    "standardAssessmentCriterias": [
+      "be39dade-b75f-46c8-88b3-aea6012817f2",
+      "d38779aa-d9eb-48e0-9464-aea60126676b",
+      "dfc640fa-3a98-4c18-a7e4-aea601283224",
+      "c3cb345d-a86a-4471-89ff-aea60127b5a2",
+      "7d996371-cf6a-4e60-8a2c-aea601268b92",
+      "f7e6abed-613f-4e9c-ad94-aea60127c233",
+      "92a8992c-62fc-43b9-9c30-aea60128ebc5",
+      "52917e13-269b-4f32-9861-aea6012768fc",
+      "52b3156e-7d3c-4fc8-86bc-aea601277939",
+      "ddd6b8c1-c142-495e-b1d4-aea60129154f",
+      "50d7d6cb-5375-4f29-88e2-aea601271cab",
+      "20d89741-b33d-4b4f-a021-aea60128731d",
+      "52054825-e3fe-4873-a60f-aea6012700f7",
+      "0c0734fb-2c21-46ed-8812-aea601285a57",
+      "2a4216c7-fa00-4f9b-b8db-aea60128bf43",
+      "180479b4-d877-418a-b17d-aea60128b237",
+      "9f3a411b-4a17-4103-9dc0-aea6012909a2",
+      "e8a53953-e615-428d-8952-aea601289ac7",
+      "9c83e03a-cb76-4ba1-aa24-aea601274894",
+      "72e79476-645c-4aa7-ac3a-aea60123af68",
+      "7be30520-f6f8-40c2-9882-aea60128d7c7",
+      "57222a75-232b-43a2-8fce-aea60126bcb3",
+      "a8c0240f-ca3e-4235-8c03-aea601284b7f",
+      "6b17e0c8-8d7c-447d-9ad1-aea60128cb4a",
+      "ada16f7e-a646-4c91-8874-aea601283ef8",
+      "f81a0b1a-4563-4b88-b4d2-aea60126cbdc",
+      "0698add1-d4c6-4602-91e0-aea60128fc68",
+      "510c425f-b1c9-483c-91e3-aea60128a6e2",
+      "5ba8ee36-b8c5-4e90-9d8d-aea601288f10"
+    ],
+    "feedback": "<p><br /></p><p>Thanks</p>"
+  },
+  "status": "Complete",
+  "includeInPortfolio": false,
+  "isDeleted": false
+}

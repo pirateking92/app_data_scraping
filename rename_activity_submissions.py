@@ -5,20 +5,23 @@ import re
 def remove_unique_identifier(filename):
     # List of patterns to match various filename structures
     patterns = [
-        r"^(.*?) - [a-f0-9-]{36}\.[0-9T-]{20}Z\.(.*)$",  # Pattern 1: name - uuid.timestamp.rest
-        r"^[a-f0-9-]{36}\.QualificationCertificate\.[0-9T-]+Z\.(.*)$",  # Pattern 2: uuid.QualificationCertificate.timestamp.rest
-        r"^[a-f0-9-]{36}\.Other\.[0-9T-]{20}Z\.(.*)$",  # Pattern 3: uuid.Other.timestamp.rest
+        # Pattern for two UUIDs, timestamp, and a file description with spaces and periods
         r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
         r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
-        r"\d{8}T\d{6}-\d{3}Z\.(.*)$",  # Pattern 4: uuid.uuid.timestamp.rest
+        r"\d{8}T\d{5,6}-\d{3}Z\.([a-zA-Z0-9\s\-.]+)\.(.*)$",  # Handles multiple periods in the description
+        # Pattern for UUID, timestamp, and a description
+        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
+        r"\d{8}T\d{6}-\d{3}Z\.([a-zA-Z0-9\s\-.]+)\.(.*)$",
+        # Pattern for UUID.UUID.timestamp.rest
         r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
         r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
-        r"\d{8}T\d{6}-\d{3}Z\.([a-zA-Z0-9\s\-]+)\.(.*)$",  # Pattern 5: uuid.uuid.timestamp.file-description.rest
-        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
-        r"\d{8}T\d{6}-\d{3}Z\.([a-zA-Z0-9\s\-_]+)\.(.*)$",  # Pattern 6: UUID.Timestamp.Description.Extension
-        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
-        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
-        r"\d{8}T\d{6}-\d{3}Z\.([a-zA-Z0-9\s\-_]+)\.(.*)$",  # Pattern 7: UUID.UUID.Timestamp.Description.Extension
+        r"\d{8}T\d{6}-\d{3}Z\.(.*)$",
+        # Pattern for uuid.Other.timestamp.rest
+        r"^[a-f0-9-]{36}\.Other\.[0-9T-]{20}Z\.(.*)$",
+        # General pattern for UUID.Timestamp.Description.Extension
+        r"^[a-f0-9-]{36}\.[0-9T-]{20}Z\.(.*)$",
+        # General pattern for UUID.UUID.Timestamp.Description.Extension
+        r"^[a-f0-9-]{36}\.[a-f0-9-]{36}\.[0-9T-]{20}Z\.(.*)$",
     ]
 
     print(f"Processing filename: {filename}")

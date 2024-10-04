@@ -1,5 +1,31 @@
 import os
 import re
+from xhtml2pdf import pisa
+from io import BytesIO
+
+
+# def convert_html_file_to_pdf(filename):
+#     if filename.endswith(".html"):
+#         # Open the HTML file for reading
+#         with open(filename, "r", encoding="utf-8") as file:
+#             # Read the content of the file and store it as a string
+#             html_content = file.read()
+
+#         # Create a BytesIO object to store the PDF output
+#         pdf_output = BytesIO()
+
+#         # Convert the HTML content to a PDF document
+#         pisa.CreatePDF(html_content, dest=pdf_output, encoding="utf-8")
+
+#         pdf_filename = filename.replace(".html", ".pdf")
+
+#         # Open a PDF file for writing in binary mode
+#         with open(pdf_filename, "wb") as pdf_file:
+#             # Write the PDF content to the file
+#             pdf_file.write(pdf_output.getvalue())
+#         return pdf_filename
+#     else:
+#         None
 
 
 def remove_unique_identifier(filename):

@@ -42,6 +42,7 @@ def process_json_file(json_file_path: str) -> None:
 
     comment_str = data[0]["comment"]
     submission_date = data[0]["submissionDate"]
+    file_id = data[0]["id"]
 
     # Check if 'files' exists and has at least 2 items
     if (
@@ -53,7 +54,7 @@ def process_json_file(json_file_path: str) -> None:
         output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} {file_name} {comment_str[0:30]}_{submission_date[:9]}.csv"
     else:
         # Handle case where 'files' is missing or has fewer than 2 items
-        output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} {comment_str[0:30]}_{submission_date[:9]}.csv"
+        output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} {comment_str[0:30]}_{submission_date[:10]} {file_id[:8]}.csv"
 
     output_file = json_to_csv(data, output_filename)
     print(

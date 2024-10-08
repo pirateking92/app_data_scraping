@@ -1,13 +1,53 @@
 import os
 import re
 import logging
+import psycopg2
 from weasyprint import HTML
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Database connection details
+DB_HOST = "127.0.0.1"
+DB_NAME = "dataMigrationMakers"
+DB_USER = "mattdoyle"
+DB_PASS = ""
 
 filename_counts = {}
+
+
+def connect_to_database():
+    """Connects to the PostgreSQL database."""
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST, database=DB_NAME, user=DB_USER, password=DB_PASS
+        )
+        logger.info("Connected to the database.")
+        return conn
+    except Exception as e:
+        logger.error(f"Database connection failed: {str(e)}")
+        return None
+
+
+def get_learner_name(uuid):
+    """Fetches the learner's full name from the database based on UUID."""
+    conn = connect_to_database()
+    if conn is None:
+        return None
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT learner_full_name FROM apprentice_info WHERE ApplicationId = %s",
+                (uuid.upper(),),
+            )
+            result = cursor.fetchone()
+            return result[0] if result else None
+    except Exception as e:
+        logger.error(f"Failed to fetch learner name for UUID {uuid}: {str(e)}")
+        return None
+    finally:
+        conn.close()
 
 
 def convert_html_file_to_pdf(filename):
@@ -26,31 +66,24 @@ def convert_html_file_to_pdf(filename):
 
 def remove_unique_identifier(filename):
     """Removes unique identifiers (UUIDs, timestamps, etc.) from filenames."""
-    patterns = [
-        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
-        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
-        r"\d{8}T\d{6}-\d{3}Z\.([a-zA-Z0-9\s\-.]+)\.(.*)$",
-        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\."
-        r"\d{8}T\d{6}-\d{3}Z\.([a-zA-Z0-9\s\-.]+)\.(.*)$",
-        r"^[a-f0-9-]{36}\.[0-9T-]{20}Z\.(.*)$",
-        r"^[a-f0-9-]{36}\.[a-f0-9-]{36}\.[0-9T-]{20}Z\.(.*)$",
-        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.([a-zA-Z0-9\s\-.]+)\.\d{8}T\d{6}-\d{3}Z\.(.*)$",
-    ]
-
     logger.info(f"Processing filename: {filename}")
+    uuid_pattern = r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
+    # timestamp_pattern = r"^[a-f0-9-]{36}\.[0-9T-]{20}Z\.(.*)$"
 
-    for pattern in patterns:
-        match = re.match(pattern, filename)
-        if match:
-            # If the pattern matches, construct the new filename based on matched groups
-            new_filename = (
-                f"{match.group(1)}.{match.group(2)}"
-                if match.lastindex > 1
-                else match.group(1)
-            )
+    match = re.match(uuid_pattern, filename)
+    if match:
+        uuid = match.group(1)
+        learner_name = get_learner_name(uuid)
+        if learner_name:
+            new_filename = filename.replace(uuid, learner_name)
             return new_filename, filename.endswith(".html")
+        else:
+            logger.warning(
+                f"No learner name found for UUID {uuid}. Using original filename."
+            )
+            return filename, filename.endswith(".html")
 
-    logger.info("No patterns matched.")
+    logger.info("No UUID pattern matched.")
     return filename, False
 
 

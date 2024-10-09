@@ -65,30 +65,47 @@ def convert_html_file_to_pdf(filename):
 
 
 def remove_unique_identifier(filename):
-    """Removes unique identifiers (UUIDs, timestamps, etc.) from filenames."""
+    """Removes unique identifiers (UUIDs, timestamps, etc.) from filenames and reformats."""
     logger.info(f"Processing filename: {filename}")
-    # Updated regex to match UUID followed by timestamp and any other parts
-    uuid_time_pattern = r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.[^.]*\.\d{8}T\d{6}-\d{3}Z\.(.*)$"
 
-    match = re.match(uuid_time_pattern, filename)
+    # List of regex patterns for matching UUID, timestamp, and filename components
+    patterns = [
+        # Case 1: UUID.Timestamp.Identifier.FileExtension
+        r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
+        r"[a-zA-Z0-9]+\.\d{8}T\d{6}-\d{3}Z\.(.*?)(\.[a-zA-Z0-9]+)$",
+        # Case 2: UUID.Timestamp.Identifier.Description.FileExtension
+        r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
+        r"[a-zA-Z0-9]+\.\d{8}T\d{6}-\d{3}Z\.(.*?)(\.[a-zA-Z0-9]+)$",
+    ]
 
-    if match:
-        uuid = match.group(1)
-        learner_name = get_learner_name(uuid)
-        if learner_name:
-            # Construct the new filename, replacing UUID and timestamp with learner's name
-            remaining_part = match.group(
-                2
-            )  # Capture the remaining part after timestamp
-            new_filename = f"{learner_name} - {remaining_part}"
-            return new_filename, filename.endswith(".html")
-        else:
-            logger.warning(
-                f"No learner name found for UUID {uuid}. Using original filename."
-            )
-            return filename, filename.endswith(".html")
+    for pattern in patterns:
+        match = re.match(pattern, filename)
+        if match:
+            uuid = match.group(1)
+            remaining_part = match.group(2)  # The part after the timestamp
+            file_extension = match.group(3)  # Capture the file extension
 
-    logger.info("No UUID pattern matched.")
+            learner_name = get_learner_name(uuid)
+            if learner_name:
+                # If learner name is found, format the new filename based on the match
+                if remaining_part and "." in remaining_part:
+                    # For Case 2: Append everything after the first identifier
+                    parts = remaining_part.split(".", 1)
+                    new_filename = (
+                        f"{learner_name} - {parts[0]} - {parts[1]}{file_extension}"
+                    )
+                else:
+                    # For Case 1: Just use the identifier and file extension
+                    new_filename = f"{learner_name} - {remaining_part}.{file_extension}"
+
+                return new_filename, filename.endswith(".html")
+            else:
+                logger.warning(
+                    f"No learner name found for UUID {uuid}. Using original filename."
+                )
+                return filename, filename.endswith(".html")
+
+    logger.info("No patterns matched.")
     return filename, False
 
 

@@ -70,33 +70,34 @@ def remove_unique_identifier(filename):
 
     # List of regex patterns for matching UUID, timestamp, and filename components
     patterns = [
-        # Case 1: UUID.Timestamp.Identifier.FileExtension
+        # UUID.Identifier.Timestamp.FileExtension
         r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
-        r"[a-zA-Z0-9]+\.\d{8}T\d{6}-\d{3}Z\.(.*?)(\.[a-zA-Z0-9]+)$",
-        # Case 2: UUID.Timestamp.Identifier.Description.FileExtension
+        r"([a-zA-Z0-9]+)\.\d{8}T\d{6}-\d{3}Z(\.[a-zA-Z0-9]+)$",
+        # UUID.Identifier.Timestamp.AdditionalDetails.FileExtension
         r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
-        r"[a-zA-Z0-9]+\.\d{8}T\d{6}-\d{3}Z\.(.*?)(\.[a-zA-Z0-9]+)$",
+        r"([a-zA-Z0-9]+)\.\d{8}T\d{6}-\d{3}Z\.(.*?)\.(.*)$",
+        # i need more regexs to check for the different files in different folders.
     ]
 
     for pattern in patterns:
         match = re.match(pattern, filename)
         if match:
             uuid = match.group(1)
-            remaining_part = match.group(2)  # The part after the timestamp
-            file_extension = match.group(3)  # Capture the file extension
+            identifier = match.group(2)
+            remaining_part = match.group(3) if len(match.groups()) > 2 else ""
+            file_extension = match.group(
+                len(match.groups())
+            )  # Capture the file extension
 
             learner_name = get_learner_name(uuid)
             if learner_name:
-                # If learner name is found, format the new filename based on the match
-                if remaining_part and "." in remaining_part:
-                    # For Case 2: Append everything after the first identifier
-                    parts = remaining_part.split(".", 1)
-                    new_filename = (
-                        f"{learner_name} - {parts[0]} - {parts[1]}{file_extension}"
-                    )
+                # Construct new filename based on captured components
+                if remaining_part:
+                    # For filenames with additional details (Case 2)
+                    new_filename = f"{learner_name} - {identifier} - {remaining_part}.{file_extension}"
                 else:
-                    # For Case 1: Just use the identifier and file extension
-                    new_filename = f"{learner_name} - {remaining_part}.{file_extension}"
+                    # For simple filenames (Case 1)
+                    new_filename = f"{learner_name} - {identifier}.{file_extension}"
 
                 return new_filename, filename.endswith(".html")
             else:

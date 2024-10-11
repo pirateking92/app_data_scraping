@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 # Database connection details
 DB_HOST = "127.0.0.1"
-DB_NAME = "dataMigrationMakers"
+DB_NAME = "datamigrationmakers"
 DB_USER = "mattdoyle"
 DB_PASS = ""
 

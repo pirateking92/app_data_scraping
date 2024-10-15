@@ -3,7 +3,7 @@ import re
 import logging
 import psycopg2
 from weasyprint import HTML
-from json_to_csv_converter import JSONToCSVConverter  # Import the JSON converter
+from json_to_csv_converter import JSONtoCSVConverter  # Import the JSON converter
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ DB_PASS = ""
 filename_counts = {}
 
 # Instantiate the JSONToCSVConverter
-json_converter = JSONToCSVConverter()
+json_converter = JSONtoCSVConverter()
 
 
 def connect_to_database():

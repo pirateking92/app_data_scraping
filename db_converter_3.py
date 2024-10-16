@@ -77,24 +77,37 @@ def remove_unique_identifier(filename):
         r"([a-zA-Z0-9]+)\.\d{8}T\d{6}-\d{3}Z(\.[a-zA-Z0-9]+)$",
         r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
         r"([a-zA-Z0-9]+)\.\d{8}T\d{6}-\d{3}Z\.(.*?)\.(.*)$",
+        r"^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
+        r"([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
+        r"(\d{8}T\d{6}-\d{3}Z\.[\w\s\-().,'&_]+\.[a-zA-Z0-9]+$)",
+        r"^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
+        r"([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
+        r"\d{8}T([0-9]{6}|[7-9][0-9]{4})-\d{3}Z\.[\w\s\-().,'&_+]+(\.[a-zA-Z0-9]+)+$",
+        r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\."
+        r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\."
+        r"\d{8}T\d{5}-\d{3}Z\.[\w\s\-().,'&_+*]+(\.[a-zA-Z0-9]+)+$",
     ]
 
     for pattern in patterns:
         match = re.match(pattern, filename)
         if match:
             uuid = match.group(1)
-            identifier = match.group(2)
+            # identifier = match.group(2)
             remaining_part = match.group(3) if len(match.groups()) > 2 else ""
             file_extension = match.group(len(match.groups()))
+            # identifier.rstrip()
+            remaining_part.rstrip()
 
             learner_name = get_learner_name(uuid)
             if learner_name:
                 if remaining_part:
-                    new_filename = f"{learner_name} - {identifier} - {remaining_part}.{file_extension}"
+                    new_filename = (
+                        f"{learner_name} - {remaining_part[0:10]}.{file_extension}"
+                    )
                 else:
-                    new_filename = f"{learner_name} - {identifier}.{file_extension}"
+                    new_filename = f"{learner_name} - {file_extension}"
 
-                return new_filename, filename.endswith(".html")
+                return new_filename.rstrip(), filename.endswith(".html")
             else:
                 logger.warning(
                     f"No learner name found for UUID {uuid}. Using original filename."
@@ -193,20 +206,27 @@ def process_files_in_folder(folder_path):
 
 def main():
     """Main function to handle user input and process files."""
-    print("Choose an option:")
-    print("1. Process a single file")
-    print("2. Process all files in a folder")
+    while True:
+        print("Choose an option:")
+        print("1. Process a single file")
+        print("2. Process all files in a folder")
 
-    choice = input("Enter your choice (1/2): ").strip()
+        choice = input("Enter your choice (1/2): ").strip()
 
-    if choice == "1":
-        file_path = input("Enter the full path of the file: ").strip()
-        process_individual_file(file_path)
-    elif choice == "2":
-        folder_path = input("Enter the folder path: ").strip()
-        process_files_in_folder(folder_path)
-    else:
-        print("Invalid choice. Please run the script again and choose 1 or 2.")
+        if choice == "1":
+            file_path = input("Enter the full path of the file: ").strip()
+            process_individual_file(file_path)
+        elif choice == "2":
+            folder_path = input("Enter the folder path: ").strip()
+            process_files_in_folder(folder_path)
+        else:
+            print("Invalid choice. Please run the script again and choose 1 or 2.")
+            continue
+
+        restart = input("Start again? (y/n): ").strip().lower()
+        if restart != "y":
+            print("Exiting program.")
+            break
 
 
 if __name__ == "__main__":

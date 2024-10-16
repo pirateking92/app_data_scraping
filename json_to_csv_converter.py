@@ -52,10 +52,12 @@ class JSONtoCSVConverter:
             and isinstance(data[0]["files"], list)
             and len(data[0]["files"]) > 1
         ):
-            file_name = data[0]["files"][1].get("fileName", "unknown_file")
-            output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} {file_name} comm:{comment_str[0:30]}_{submission_date[:9]}.csv"
+            file_name = data[0]["files"][0].get("fileName")
+            output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} filename: {file_name} comm: {comment_str[0:30]}_{submission_date[:9]}.csv"
         else:
-            output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} comm:{comment_str[0:30]}_{submission_date[:10]} {file_id[:8]}.csv"
+            output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} comm: {comment_str[0:30]}_{submission_date[:10]} {file_id[:8]}.csv"
+
+        output_filename = output_filename.replace("/", "-")
 
         # Use the directory of the input JSON file for the output CSV file
         output_filepath = os.path.join(os.path.dirname(json_file_path), output_filename)

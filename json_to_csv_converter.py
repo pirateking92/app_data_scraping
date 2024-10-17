@@ -15,7 +15,7 @@ class JSONtoCSVConverter:
         # Ensure the filename is valid
         output_filename = os.path.basename(output_filepath)
         output_filename = "".join(
-            c for c in output_filename if c.isalnum() or c in (" ", ".", "_")
+            c for c in output_filename if c.isalnum() or c in (" ", ".", "_", "-")
         ).rstrip()
         if not output_filename.endswith(".csv"):
             output_filename += ".csv"
@@ -53,9 +53,9 @@ class JSONtoCSVConverter:
             and len(data[0]["files"]) > 1
         ):
             file_name = data[0]["files"][0].get("fileName")
-            output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} filename: {file_name} comm: {comment_str[0:30]}_{submission_date[:9]}.csv"
+            output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} - {file_name} - {comment_str[0:30]} - {submission_date[:9]}.csv"
         else:
-            output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} comm: {comment_str[0:30]}_{submission_date[:10]} {file_id[:8]}.csv"
+            output_filename = f"{data[0]['submitterFirstName']} {data[0]['submitterLastName']} -  {comment_str[0:30]} - {submission_date[:10]} - {file_id[:8]}.csv"
 
         output_filename = output_filename.replace("/", "-")
 

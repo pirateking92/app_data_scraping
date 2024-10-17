@@ -1,9 +1,9 @@
 import os
 import re
 import logging
-import psycopg2
 from weasyprint import HTML
 from json_to_csv_converter import JSONtoCSVConverter  # Import the JSON converter
+from db_conn import db_conn
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,24 +18,12 @@ filename_counts = {}
 
 # Instantiate the JSONToCSVConverter
 json_converter = JSONtoCSVConverter()
-
-
-def connect_to_database():
-    """Connects to the PostgreSQL database."""
-    try:
-        conn = psycopg2.connect(
-            host=DB_HOST, database=DB_NAME, user=DB_USER, password=DB_PASS
-        )
-        logger.info("Connected to the database.")
-        return conn
-    except Exception as e:
-        logger.error(f"Database connection failed: {str(e)}")
-        return None
+db_conn = db_conn()
 
 
 def get_learner_name(uuid):
     """Fetches the learner's full name from the database based on UUID."""
-    conn = connect_to_database()
+    conn = db_conn.connect_to_database()
     if conn is None:
         return None
 
@@ -74,38 +62,56 @@ def remove_unique_identifier(filename):
 
     patterns = [
         r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
+        r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
+        r"(\d{8}T\d{6}-\d{3}Z)\.([\w\s\-().,'&_]+)\.(.*)$",
+        r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
+        r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
+        r"(\d{8}T\d{5}-\d{3}Z)\.([\w\s\-().,'&_+]+)\.([a-zA-Z0-9]+)$",
+        r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
         r"([a-zA-Z0-9]+)\.\d{8}T\d{6}-\d{3}Z(\.[a-zA-Z0-9]+)$",
         r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
         r"([a-zA-Z0-9]+)\.\d{8}T\d{6}-\d{3}Z\.(.*?)\.(.*)$",
         r"^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
         r"([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
-        r"(\d{8}T\d{6}-\d{3}Z\.[\w\s\-().,'&_]+\.[a-zA-Z0-9]+$)",
+        r"(\d{8}T\d{6}-\d{3}Z\.[\w\s\-().,'&_]+\.[a-zA-Z0-9]+)$",
         r"^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
         r"([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
         r"\d{8}T([0-9]{6}|[7-9][0-9]{4})-\d{3}Z\.[\w\s\-().,'&_+]+(\.[a-zA-Z0-9]+)+$",
         r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\."
         r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\."
         r"\d{8}T\d{5}-\d{3}Z\.[\w\s\-().,'&_+*]+(\.[a-zA-Z0-9]+)+$",
+        # Corrected pattern with additional group for text between the timestamp and file extension
+        r"^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
+        r"([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\."
+        r"(\d{8}T\d{5}-\d{3}Z)\.([\w\s\-().,'&_+]+)\.([a-zA-Z0-9]+)$",
     ]
 
     for pattern in patterns:
         match = re.match(pattern, filename)
         if match:
-            uuid = match.group(1)
-            # identifier = match.group(2)
-            remaining_part = match.group(3) if len(match.groups()) > 2 else ""
-            file_extension = match.group(len(match.groups()))
-            # identifier.rstrip()
-            remaining_part.rstrip()
+            logger.debug(f"Pattern matched: {pattern}")
+            logger.debug(f"Captured Groups: {match.groups()}")
 
-            learner_name = get_learner_name(uuid)
+            uuid = match.group(1)
+            time_stamp = match.group(3) if len(match.groups()) > 2 else ""
+            description = match.group(4) if match.lastindex >= 4 else ""
+            file_extension = match.group(match.lastindex)
+            remaining_part = time_stamp.rstrip()
+
+            # Validate UUID length
+            if uuid and len(uuid) == 36:
+                learner_name = get_learner_name(uuid)
+            else:
+                logger.warning(
+                    "Invalid UUID found in filename. Skipping learner name lookup."
+                )
+                learner_name = None
+
             if learner_name:
                 if remaining_part:
-                    new_filename = (
-                        f"{learner_name} - {remaining_part[0:10]}.{file_extension}"
-                    )
+                    new_filename = f"{learner_name} - {remaining_part[0:10]} - {description}.{file_extension}"
                 else:
-                    new_filename = f"{learner_name} - {file_extension}"
+                    new_filename = f"{learner_name} - {description}.{file_extension}"
 
                 return new_filename.rstrip(), filename.endswith(".html")
             else:
@@ -114,7 +120,7 @@ def remove_unique_identifier(filename):
                 )
                 return filename, filename.endswith(".html")
 
-    logger.info("No patterns matched.")
+    logger.info("No patterns matched. No changes made.")
     return filename, False
 
 
@@ -137,26 +143,27 @@ def rename_file(file_path):
     filename = os.path.basename(file_path)
 
     new_filename, is_html = remove_unique_identifier(filename)
+
+    if filename == new_filename:
+        logger.info(f"Skipped: {filename} (No change. Not needed or no name found.)")
+        return False
+
     new_filename = increment_filename(directory, new_filename)
 
-    if filename != new_filename:
+    try:
         new_file_path = os.path.join(directory, new_filename)
-        try:
-            os.rename(file_path, new_file_path)
-            logger.info(f"Renamed: {filename} -> {new_filename}")
+        os.rename(file_path, new_file_path)
+        logger.info(f"Renamed: {filename} -> {new_filename}")
 
-            if is_html:
-                pdf_file = convert_html_file_to_pdf(new_file_path)
-                if pdf_file:
-                    logger.info(f"Converted HTML to PDF: {pdf_file}")
-                else:
-                    logger.warning(f"Failed to convert HTML to PDF: {new_file_path}")
-            return True
-        except OSError as e:
-            logger.error(f"Error renaming {filename}: {e}")
-            return False
-    else:
-        logger.info(f"Skipped: {filename} (no change needed)")
+        if is_html:
+            pdf_file = convert_html_file_to_pdf(new_file_path)
+            if pdf_file:
+                logger.info(f"Converted HTML to PDF: {pdf_file}")
+            else:
+                logger.warning(f"Failed to convert HTML to PDF: {new_file_path}")
+        return True
+    except OSError as e:
+        logger.error(f"Error renaming {filename}: {e}")
         return False
 
 

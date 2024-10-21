@@ -4,35 +4,37 @@ import os
 import shutil
 
 
-def organise_files(directory):
-    files = [
-        f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))
-    ]
+class folder_organiser:
+    def organise_files(self, directory):
+        files = [
+            f
+            for f in os.listdir(directory)
+            if os.path.isfile(os.path.join(directory, f))
+        ]
 
-    for file in files:
-        words = file.split()[:2]
-        if len(words) < 2:
-            print(f"Skipping {file}: not enough words in filename.")
-            continue
+        for file in files:
+            words = file.split()[:2]
+            if len(words) < 2:
+                print(f"Skipping {file}: not enough words in filename.")
+                continue
 
-        folder_name = " ".join(words)
-        folder_path = os.path.join(directory, folder_name)
+            folder_name = " ".join(words)
+            folder_path = os.path.join(directory, folder_name)
 
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
 
-        source = os.path.join(directory, file)
-        destination = os.path.join(folder_path, file)
-        shutil.move(source, destination)
-        print(f"Moved {file} to {folder_name}")
+            source = os.path.join(directory, file)
+            destination = os.path.join(folder_path, file)
+            shutil.move(source, destination)
+            print(f"Moved {file} to {folder_name}")
 
 
 def main():
     while True:
         print("Enter the folder path:")
         directory = input().strip()
-        organise_files(directory)
+        folder_organiser.organise_files(directory)
 
-
-if __name__ == "__main__":
-    main()
+    if __name__ == "__main__":
+        main()

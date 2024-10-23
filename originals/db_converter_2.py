@@ -3,6 +3,7 @@ import re
 import logging
 import psycopg2
 from weasyprint import HTML
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -72,10 +73,10 @@ def remove_unique_identifier(filename):
     patterns = [
         # UUID.Identifier.Timestamp.FileExtension
         r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
-        r"([a-zA-Z0-9]+)\.\d{8}T\d{6}-\d{3}Z(\.[a-zA-Z0-9]+)$",
+        r"([a-zA-Z0-9]+)\.(\d{8}T\d{6}-\d{3}Z)\.([a-zA-Z0-9]+)$",
         # UUID.Identifier.Timestamp.AdditionalDetails.FileExtension
-        r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
-        r"([a-zA-Z0-9]+)\.\d{8}T\d{6}-\d{3}Z\.(.*?)\.(.*)$",
+        # r"^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\."
+        # r"([a-zA-Z0-9]+)\.\d{8}T\d{6}-\d{3}Z\.(.*?)\.(.*)$",
         # i need more regexs to check for the different files in different folders.
     ]
 
@@ -84,10 +85,12 @@ def remove_unique_identifier(filename):
         if match:
             uuid = match.group(1)
             identifier = match.group(2)
-            remaining_part = match.group(3) if len(match.groups()) > 2 else ""
+            timestamp = match.group(3) if len(match.groups()) > 2 else ""
             file_extension = match.group(
                 len(match.groups())
             )  # Capture the file extension
+            formatted_date = datetime.strptime(timestamp, "%Y%m%dT%H%M%S-%fZ")
+            remaining_part = formatted_date.strftime("%Y %m %d - %H:%M:%S")
 
             learner_name = get_learner_name(uuid)
             if learner_name:

@@ -5,7 +5,6 @@ import send2trash
 
 class folder_organiser:
     def organise_files(self, directory):
-        # Your existing organise_files code stays the same as it works well
         files = [
             f
             for f in os.listdir(directory)

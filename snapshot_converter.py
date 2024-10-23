@@ -181,11 +181,18 @@ def rename_file(file_path):
         directory = os.path.dirname(file_path)
         filename = os.path.basename(file_path)
 
-        new_filename, is_html = remove_unique_identifier(filename)
-        new_filename = increment_filename(directory, new_filename)
+        # Check if the file is already a PDF and skip if so
+        if filename.endswith(".pdf"):
+            logger.info(f"Skipped: {filename} (already a PDF).")
+            return False
 
+        new_filename, is_html = remove_unique_identifier(filename)
+
+        # Only increment the filename if it's not already the same as the new filename
         if filename != new_filename:
+            new_filename = increment_filename(directory, new_filename)
             new_file_path = os.path.join(directory, new_filename)
+
             try:
                 os.rename(file_path, new_file_path)
                 logger.info(f"Renamed: {filename} -> {new_filename}")
